@@ -1,54 +1,77 @@
 const getState = ({ getStore, getActions, setStore }) => {
-	return {
-		store: {
-			message: null,
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
-		},
-		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
+    return {
+        store: {
+            listaDePersonajes: [],
+            listaDePlanetas: [],
+            listaDeFavoritos: []
+        },
+        actions: {
+            traerPersonajes: async () => {
+                try {
+                    const result = await fetch("https://ubiquitous-giggle-wr74qgqjgg9vhggpw-3001.app.github.dev/api/people");
+                    const data = await result.json();
+                    console.log("data:", data);
+                    
+                    const personajesDetalles = data.map(personaje => ({
+                        id: personaje.id,
+                        name: personaje.name,
+                        gender: personaje.gender,
+                        eyeColor: personaje.eye_color,
+                        birthYear: personaje.birth_year,
+                        height: personaje.height,
+                        skinColor: personaje.skin_color,
+                        imageUrl: personaje.image_url
+                    }));
+            
+                    console.log("personajesDetalles:", personajesDetalles);
+                    setStore({ listaDePersonajes: personajesDetalles });
+                } catch (err) {
+                    console.error(err);
+                }
+            },
+            traerPlanetas: async () => {
+                try {
+                    const resultPlanet = await fetch("https://ubiquitous-giggle-wr74qgqjgg9vhggpw-3001.app.github.dev/api/planets");
+                    const data = await resultPlanet.json();
 
-			getMessage: async () => {
-				try{
-					// fetching data from the backend
-					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
-					const data = await resp.json()
-					setStore({ message: data.message })
-					// don't forget to return something, that is how the async resolves
-					return data;
-				}catch(error){
-					console.log("Error loading message from backend", error)
-				}
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
-			}
-		}
-	};
+                    const planetasDetalles = data.map(planeta => ({
+                        id: planeta.id,
+                        name: planeta.name,
+                        diameter: planeta.diameter,
+                        climate: planeta.climate,
+                        population: planeta.population,
+                        orbitalPeriod: planeta.orbital_period,
+                        rotationPeriod: planeta.rotation_period,
+                        imageUrl: planeta.image_url,
+                    }));
+                    setStore({ listaDePlanetas: planetasDetalles });
+                } catch (err) {
+                    console.error(err);
+                }
+            },
+            addFavorites: (id, type, name, title) => {
+                const { listaDeFavoritos } = getStore();
+                const foundIndex = listaDeFavoritos.findIndex(
+                    (element) => element.id === id && element.type === type
+                );
+                if (foundIndex !== -1) {
+                    const newFavorites = listaDeFavoritos.filter(
+                        (element, index) => index !== foundIndex
+                    );
+                    setStore({ listaDeFavoritos: newFavorites });
+                } else {
+                    const newFavorites = [...listaDeFavoritos, { id, type, name, title }];
+                    setStore({ listaDeFavoritos: newFavorites });
+                }
+            },
+            isInFavorites: (id, type) => {
+                const { listaDeFavoritos } = getStore();
+                return listaDeFavoritos.some(
+                    (element) => element.id === id && element.type === type
+                );
+            },
+        }
+    };
 };
 
 export default getState;
