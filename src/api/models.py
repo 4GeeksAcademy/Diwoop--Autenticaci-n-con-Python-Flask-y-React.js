@@ -17,6 +17,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    user_name= db.Column(db.String(80), nullable=False, unique=True)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     favorite_planets = db.relationship('Planet', secondary=favorite_planets, backref=db.backref('favorited_by_users', lazy='dynamic'))
     favorite_people = db.relationship('People', secondary=favorite_people, backref=db.backref('favorited_by_users', lazy='dynamic'))
@@ -26,6 +27,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "user_name": self.user_name,
             "is_active": self.is_active,
             "favorite_planets": list(map(lambda x: x.serialize(), self.favorite_planets))
         }

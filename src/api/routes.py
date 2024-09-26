@@ -104,48 +104,40 @@ def delete_favorite_planet(planet_id, current_user_id):
 
     return jsonify(user_query.serialize()), 200
 
+@api.route('/users', methods=['POST'])
+def create_user():
+    user_data = request.get_json()
+    if 'user_name' not in user_data or 'email' not in user_data or 'password' not in user_data:
+        raise APIException('Faltan datos requeridos', status_code=400)
+    user_name = user_data['user_name'] 
+    email = user_data['email']
+    password = user_data['password']
+    if User.query.filter_by(user_name=user_name).first() is not None:
+        raise APIException('El nombre de usuario ya está en uso', status_code=409)
+    if User.query.filter_by(email=email).first() is not None:
+        raise APIException('El correo electrónico ya está en uso', status_code=409)
+    nuevo_usuario = User(
+        user_name=user_name,
+        email=email,
+        password=password
+    )
+    try:
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        return jsonify(nuevo_usuario.serialize()), 201
+    except Exception as e:
+        db.session.rollback()
+        raise APIException(f'Error al crear usuario: {str(e)}', status_code=500)
+
+
 @api.route("/login", methods=["POST"])
 def login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
-    print("\n\n\n")
-    print(email)
-    print(password)
-
     if email is None or password is None:
-        return jsonify({"msg": "Bad username or password"}), 401
-
-    user_query = User.query.filter_by(email=email)
-    user = user_query.first()
-    print(user)
-
-    if user is None:
-        return jsonify({"msg": "Bad username or password"}), 401
-    if user.email != email or user.password != password:
-        return jsonify({"msg": "Bad username or password"}), 401
-
-    print("\n\n\n")
-    access_token = create_access_token(identity=user.id)
-    return jsonify(access_token=access_token)
-
-@api.route("/current-user", methods=["GET"])
-@jwt_required()
-def get_current_user():
-    current_user_id = get_jwt_identity()
-    print(current_user_id)
-
-    if current_user_id is None:
-        return jsonify({"msg": "User not found"}), 401
-    
-    user_query = User.query.get(current_user_id)
-    print(user_query)
-
-    if user_query is None:
-        return jsonify({"msg": "User not found"}), 401
-
-    user = user_query.serialize()
-    return jsonify(current_user=user), 200
-
-if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3000))
-    api.run(host='0.0.0.0', port=PORT, debug=False)
+        raise APIException("Correo electrónico y contraseña son requeridos", status_code=400)
+    user_query = User.query.filter_by(email=email).first()
+    if not user_query or user_query.password != password:
+        raise APIException("Correo o contraseña inválidos", status_code=401)
+    access_token = create_access_token(identity=user_query.id)
+    return jsonify(access_token=access_token), 200

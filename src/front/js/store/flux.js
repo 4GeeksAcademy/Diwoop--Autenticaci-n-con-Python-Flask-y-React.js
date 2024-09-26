@@ -3,7 +3,8 @@ const getState = ({ getStore, getActions, setStore }) => {
         store: {
             listaDePersonajes: [],
             listaDePlanetas: [],
-            listaDeFavoritos: []
+            listaDeFavoritos: [],
+            isLoggedIn: false,
         },
         actions: {
             traerPersonajes: async () => {
@@ -70,6 +71,88 @@ const getState = ({ getStore, getActions, setStore }) => {
                     (element) => element.id === id && element.type === type
                 );
             },
+            createUser: async (user_name, email, password) => {
+                try {
+                  if (!user_name || !email || !password) {
+                    setStore({
+                      error: "Todos los campos son requeridos",
+                    });
+                    return false;
+                  }
+            
+                  const response = await fetch("https://ubiquitous-giggle-wr74qgqjgg9vhggpw-3001.app.github.dev/api/users", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      user_name,
+                      email,
+                      password,
+                    }),
+                  });
+            
+                  if (response.ok) {
+                    const result = await response.json();
+                    setStore({
+                      is_active: true,
+                      user: {
+                        user_name,
+                        email,
+                      },
+                      error: null,
+                    });
+                    return true;
+                  } else {
+                    const errorResult = await response.json();
+                    console.error("Server Error:", errorResult);
+                    setStore({
+                      error: errorResult.msg || "Error desconocido",
+                    });
+                    return false;
+                  }
+                } catch (error) {
+                  console.error("Network Error:", error);
+                  setStore({
+                    error: "Error al conectar con el servidor",
+                  });
+                  return false;
+                }
+              },
+
+              login: async (email, password) => {
+                const bodyData = {
+                    email,
+                    password,
+                };
+                try {
+                    const res = await fetch("https://ubiquitous-giggle-wr74qgqjgg9vhggpw-3001.app.github.dev/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(bodyData),
+                    });
+
+                    if (!res.ok) {
+                    console.log("Error al hacer login", res.status);
+                    return false;
+                    }
+
+                    const data = await res.json();
+                    const accessToken = data.access_token;
+
+                    if (accessToken) {
+                    localStorage.setItem("accessToken", accessToken);
+                    setStore({ isLoggedIn: true });
+                    return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.log("Error al cargar mensaje del backend", error);
+                    return false;
+                }
+                },
         }
     };
 };
