@@ -29,7 +29,8 @@ class User(db.Model):
             "email": self.email,
             "user_name": self.user_name,
             "is_active": self.is_active,
-            "favorite_planets": list(map(lambda x: x.serialize(), self.favorite_planets))
+            "favorite_planets": list(map(lambda x: x.serialize(), self.favorite_planets)),
+            "favorite_people":list(map(lambda x: x.serialize(), self.favorite_people)),
         }
 class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)

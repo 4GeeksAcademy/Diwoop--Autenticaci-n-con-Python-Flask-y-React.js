@@ -8,8 +8,11 @@ export const Home = () => {
     const personajes = store.listaDePersonajes;
 
     useEffect(()=> {
+        actions.checkLoginStatus();
         actions.traerPersonajes();
         actions.traerPlanetas();
+        actions.traerFavoritos(); 
+
     }, [])
     const planetas = store.listaDePlanetas;
        

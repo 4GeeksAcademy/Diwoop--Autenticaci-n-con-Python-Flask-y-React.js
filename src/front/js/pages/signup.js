@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Context } from "../store/appContext";
+import "../../styles/entrar.css";
 
 
 export const SignUp = () => {
@@ -22,8 +23,8 @@ export const SignUp = () => {
   };
 
   return (
-    <main className="main-container"> 
-      <h1 className="text-center">SIGN UP</h1>
+    <main className="main-container w-50 m-auto"> 
+      <h1 className="text-center text-warning">SIGN UP</h1>
       <form onSubmit={onSubmitHandler}>
         <div className="container">
           <div className="mb-3 input-container">
@@ -57,8 +58,8 @@ export const SignUp = () => {
             />
           </div>
           <div className="text-center m-1">
-            <button type="submit" className="btn btn-primary">
-              Registrarse
+            <button type="submit" className="btn btn-warning">
+              SignUp
             </button>
           </div>
           {store.error && <div className="text-danger text-center">{store.error}</div>}
